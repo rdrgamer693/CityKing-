@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CityKing Server Verify</title>
+    <style>
+        :root{
+            --bg1:#0f1724;
+            --bg2:#0b1020;
+            --accent:#5865F2; /* Discord-like blurple */
+            --accent-2:#7c88ff;
+            --card:#0d1220;
+            --glass: rgba(255,255,255,0.04);
+            --success:#43d17b;
+            --text:#dbeafe;
+            --muted:#98a0b3;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+
+        html,body{height:100%;}
+        body{
+            margin:0;
+            background: radial-gradient(1200px 600px at 10% 10%, rgba(88,101,242,0.12), transparent),
+                                    radial-gradient(900px 400px at 90% 90%, rgba(124,136,255,0.06), transparent),
+                                    linear-gradient(180deg,var(--bg1),var(--bg2));
+            color:var(--text);
+            display:grid;
+            place-items:center;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            padding:32px;
+        }
+
+        .card{
+            width:100%;
+            max-width:420px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-radius:14px;
+            padding:28px;
+            box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+            border:1px solid rgba(255,255,255,0.03);
+            backdrop-filter: blur(8px);
+        }
+
+        .head{
+            display:flex;
+            gap:14px;
+            align-items:center;
+            margin-bottom:18px;
+        }
+
+        .badge{
+            width:54px;
+            height:54px;
+            border-radius:10px;
+            display:grid;
+            place-items:center;
+            background: linear-gradient(135deg,var(--accent),var(--accent-2));
+            box-shadow: 0 6px 18px rgba(88,101,242,0.16), inset 0 -6px 18px rgba(255,255,255,0.06);
+            flex-shrink:0;
+        }
+
+        .badge svg{width:30px;height:30px;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));}
+
+        h1{font-size:18px;margin:0;color:var(--text);letter-spacing:-0.2px;}
+        p.lead{margin:6px 0 0;color:var(--muted);font-size:13px;}
+
+        .center{
+            display:flex;
+            align-items:center;
+            flex-direction:column;
+            gap:18px;
+            margin-top:6px;
+        }
+
+        .status{
+            width:140px;height:140px;border-radius:999px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border:1px solid rgba(255,255,255,0.03);
+            display:grid;
+            place-items:center;
+            position:relative;
+            box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+        }
+
+        .orb{
+            width:84px;height:84px;border-radius:999px;
+            display:grid;place-items:center;
+            background: conic-gradient(from 0deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            position:relative;
+            overflow:visible;
+        }
+
+        /* spinner ring */
+        .ring{
+            position:absolute; inset:0; display:grid; place-items:center;
+        }
+        .ring svg{width:120px;height:120px; transform-origin:center center; opacity:0.95;}
+        .ring .path{stroke:rgba(255,255,255,0.08); stroke-width:6; fill:none; stroke-linecap:round;}
+        .ring .dash{stroke:var(--accent); stroke-width:6; stroke-linecap:round; stroke-dasharray: 314; stroke-dashoffset: 260; transition:stroke-dashoffset 900ms cubic-bezier(.2,.9,.2,1); transform-origin:center center; animation:spin 1.6s linear infinite;}
+        @keyframes spin{ from{transform:rotate(0);} to{transform:rotate(360deg);} }
+
+        .check{
+            width:64px;height:64px; display:grid; place-items:center; transform:scale(0.92);
+        }
+        .check svg{width:64px;height:64px; overflow:visible;}
+        .check .tick{stroke:var(--success); stroke-width:6; stroke-linecap:round; stroke-linejoin:round; fill:none; stroke-dasharray: 48; stroke-dashoffset: 48; transition: stroke-dashoffset 480ms cubic-bezier(.2,.9,.2,1) 320ms; }
+        .pulse{
+            position:absolute; width:150px;height:150px;border-radius:999px; background:radial-gradient(circle at 30% 30%, rgba(124,136,255,0.12), rgba(88,101,242,0.06) 22%, transparent 40%); filter:blur(22px); opacity:0; transform:scale(.6); transition:opacity .28s ease, transform .38s cubic-bezier(.2,.9,.2,1);
+            pointer-events:none;
+        }
+
+        .controls{display:flex; gap:10px; margin-top:6px;}
+        button{
+            border:0; padding:10px 14px; border-radius:10px; font-weight:600; cursor:pointer;
+            color:white; background:linear-gradient(180deg,var(--accent),var(--accent-2)); box-shadow: 0 8px 18px rgba(88,101,242,0.16);
+        }
+        button.ghost{
+            background:transparent; color:var(--text); border:1px solid rgba(255,255,255,0.04); box-shadow:none;
+        }
+        button:disabled{opacity:.6; cursor:progress;}
+
+        .note{font-size:12px;color:var(--muted); margin-top:10px; text-align:center;}
+        .success-msg{color:var(--success); font-weight:700; letter-spacing:0.2px;}
+
+        /* states */
+        .verified .ring .dash{animation-play-state:paused; stroke-dashoffset:0;}
+        .verified .check .tick{stroke-dashoffset:0;}
+        .verified .pulse{opacity:1; transform:scale(1);}
+        .verified .orb{transition:transform .36s; transform:scale(1.06); box-shadow:0 8px 36px rgba(67,209,123,0.08);}
+
+        /* small */
+        @media (max-width:420px){
+            .card{padding:20px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="card" role="main" aria-labelledby="title">
+        <div class="head">
+            <div class="badge" aria-hidden="true">
+            <img src="https://cdn.discordapp.com/attachments/1383875664142401617/1407920812824203366/20250628_111418.png?ex=693a326f&is=6938e0ef&hm=8f97f8222f96f6c921a83e8032c4ae37d30536d823ab6ed2f1f44ec39bad2580" alt="CityKing Icon" style="width: 60px; height: 60px;">
+            </div>
+            <div>
+                <h1 id="title">Verify to access the server</h1>
+                <p class="lead">Complete the verification to unlock channels. Small animation for feedback.</p>
+            </div>
+        </div>
+
+        <div class="center">
+            <div class="status" id="status">
+                <div class="pulse" id="pulse"></div>
+
+                <div class="ring" aria-hidden="true">
+                    <svg viewBox="0 0 120 120" role="img" aria-label="verification progress">
+                        <circle class="path" cx="60" cy="60" r="48"></circle>
+                        <circle class="dash" cx="60" cy="60" r="48" fill="none"></circle>
+                    </svg>
+                </div>
+
+                <div class="orb" id="orb" aria-hidden="true">
+                    <div class="check" id="check">
+                        <svg viewBox="0 0 24 24">
+                            <path class="tick" d="M4.5 13.5l4.5 4.5L19.5 7.5"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls" role="group" aria-label="verification controls">
+                <button id="verifyBtn">Verify</button>
+                <button class="ghost" id="resetBtn" aria-hidden="true" style="display:none">Reset</button>
+            </div>
+
+            <div class="note" id="note">Click verify — this demos an animated verification flow.</div>
+        </div>
+    </div>
+
+    <script>
+        // Minimal self-contained verification animation
+        const verifyBtn = document.getElementById('verifyBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const status = document.getElementById('status');
+        const note = document.getElementById('note');
+
+        let verifying = false;
+        function setVerifying(on){
+            verifying = on;
+            verifyBtn.disabled = on;
+            if(on){
+                note.textContent = 'Verifying...';
+                // start spinner animation by ensuring dash animates (it's already animated by CSS)
+                // We'll simulate progress by reducing dashoffset over time
+                const dash = document.querySelector('.dash');
+                let offset = 260;
+                const ticks = 60;
+                const step = offset / ticks;
+                let i = 0;
+                const iv = setInterval(()=>{
+                    offset = Math.max(0, offset - step);
+                    dash.style.strokeDashoffset = offset;
+                    i++;
+                    if(i>=ticks){
+                        clearInterval(iv);
+                    }
+                }, 18);
+            } else {
+                note.textContent = 'Click verify — this demos an animated verification flow.';
+                const dash = document.querySelector('.dash');
+                dash.style.strokeDashoffset = 260;
+            }
+        }
+
+        verifyBtn.addEventListener('click', ()=>{
+            if(verifying) return;
+            setVerifying(true);
+            // fake async verification
+            setTimeout(()=> {
+                status.classList.add('verified');
+                note.innerHTML = '<span class="success-msg">Verified — welcome!</span>';
+                resetBtn.style.display = 'inline-block';
+                verifyBtn.disabled = true;
+            }, 1400); // simulate network + animation
+        });
+
+        resetBtn.addEventListener('click', ()=>{
+            status.classList.remove('verified');
+            setVerifying(false);
+            verifyBtn.disabled = false;
+            resetBtn.style.display = 'none';
+        });
+
+        // Accessibility: allow Enter to trigger verify when focused
+        verifyBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter') verifyBtn.click(); });
+        resetBtn.addEventListener('keyup', (e)=>{ if(e.key==='Enter') resetBtn.click(); });
+        // Start a 30s "wait for Discord" flow. Prevent the existing quick demo from permanently
+        // marking verified until the external verification actually completes.
+        (() => {
+            let waiting = false;
+            let allowVerified = false;
+            let popup = null;
+            let timer = null;
+            let pollPopup = null;
+
+            // Prevent the demo's existing handler from leaving .verified set until we allow it.
+            const mo = new MutationObserver(() => {
+                if (!allowVerified && status.classList.contains('verified')) {
+                    status.classList.remove('verified');
+                }
+            });
+            mo.observe(status, { attributes: true, attributeFilter: ['class'] });
+
+            function cleanup() {
+                waiting = false;
+                allowVerified = false;
+                if (timer) { clearTimeout(timer); timer = null; }
+                if (pollPopup) { clearInterval(pollPopup); pollPopup = null; }
+                if (popup && !popup.closed) popup.close();
+                popup = null;
+                window.removeEventListener('message', messageHandler);
+            }
+
+            function messageHandler(e) {
+                // Accept either a simple string or an object with a type field.
+                const data = e.data;
+                const ok =
+                    data === 'discord_verified' ||
+                    (data && (data.type === 'discord:verified' || data.type === 'verified' || data.status === 'verified'));
+
+                if (!ok) return;
+                // Verified by Discord backend
+                allowVerified = true;
+                status.classList.add('verified');
+                note.innerHTML = '<span class="success-msg">Verified — welcome!</span>';
+                resetBtn.style.display = 'inline-block';
+                verifyBtn.disabled = true;
+                cleanup();
+            }
+
+            verifyBtn.addEventListener('click', () => {
+                if (waiting) return;
+                waiting = true;
+                allowVerified = false;
+
+                // Reset any visual "verified" state the demo might set quickly.
+                status.classList.remove('verified');
+                note.textContent = 'Waiting for Discord — please complete authentication in the popup (30s)...';
+                resetBtn.style.display = 'none';
+
+                // Open a popup to your Discord auth endpoint. Replace the URL below with your real auth URL.
+                const authUrl = 'https://discord.com/app'; // <-- change to your real Discord OAuth start URL
+                popup = window.open(authUrl, 'discord-auth', 'width=600,height=700');
+
+                // Listen for a message back from the popup (the popup should postMessage when done).
+                window.addEventListener('message', messageHandler);
+
+                // Also consider polling/monitoring the popup closed state so we can fail early if user closed it.
+                pollPopup = setInterval(() => {
+                    if (!popup) return;
+                    if (popup.closed) {
+                        // If the popup closed and we haven't been verified yet, allow the 30s timer to handle it.
+                        // Optionally show a hint:
+                        note.textContent = 'Popup closed — waiting a moment for response...';
+                    }
+                }, 500);
+
+                // 30s timeout: fail if no response arrives.
+                timer = setTimeout(() => {
+                    if (!allowVerified) {
+                        cleanup();
+                        status.classList.remove('verified');
+                        note.textContent = 'Verification timed out (30s). Please try again.';
+                        verifyBtn.disabled = false;
+                        resetBtn.style.display = 'none';
+                    }
+                }, 30000);
+            });
+        })();
+    </script>
+</body>
+</html>

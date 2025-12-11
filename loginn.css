@@ -1,0 +1,311 @@
+/* loginn.css
+  Discord-like "Verify" panel animation
+  Apply .success to .verify-card when verification completes
+*/
+
+/* Theme vars */
+:root{
+  --bg:#0f1720;
+  --panel:#0b1220;
+  --accent:#5865f2; /* Discord-like purple */
+  --accent-2:#43b581; /* success green */
+  --muted:#99a3b3;
+  --glass: rgba(255,255,255,0.04);
+  --glass-2: rgba(255,255,255,0.02);
+  --shadow: 0 8px 30px rgba(2,6,23,0.6);
+  --radius:12px;
+}
+
+/* Page baseline */
+html,body{
+  height:100%;
+  margin:0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(88,101,242,0.12), transparent),
+          radial-gradient(1000px 500px at 95% 90%, rgba(67,181,129,0.06), transparent),
+          var(--bg);
+  color:#e6eef6;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px;
+  box-sizing:border-box;
+}
+
+/* Container */
+.verify-card{
+  width:360px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:22px;
+  border:1px solid var(--glass);
+  position:relative;
+  overflow:hidden;
+}
+
+/* subtle frosted bar */
+.verify-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent 30%);
+  pointer-events:none;
+  mix-blend-mode:overlay;
+}
+
+/* Header */
+.verify-header{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+.server-icon{
+  width:56px;
+  height:56px;
+  border-radius:12px;
+  background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+  box-shadow: 0 6px 16px rgba(2,6,23,0.45), inset 0 1px 0 rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.03);
+}
+
+/* placeholder logo shape */
+.server-icon .glyph{
+  width:70%;
+  height:70%;
+  background:linear-gradient(180deg, var(--accent), #7b82ff);
+  border-radius:10px;
+  transform:rotate(-10deg);
+  box-shadow:0 6px 18px rgba(88,101,242,0.15);
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Title/description */
+.verify-info{
+  flex:1;
+  min-width:0;
+}
+.verify-title{
+  font-weight:600;
+  font-size:16px;
+  margin:0 0 4px 0;
+  color:#eef4ff;
+}
+.verify-desc{
+  font-size:13px;
+  color:var(--muted);
+  margin:0;
+  line-height:1.2;
+}
+
+/* Action area */
+.verify-actions{
+  margin-top:16px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+/* Verify button */
+.verify-btn{
+  flex:1;
+  padding:10px 14px;
+  background: linear-gradient(180deg, var(--accent), #3340d1);
+  border-radius:10px;
+  border:none;
+  color:white;
+  font-weight:600;
+  font-size:14px;
+  cursor:pointer;
+  box-shadow: 0 8px 22px rgba(51,64,209,0.18), inset 0 -8px 24px rgba(0,0,0,0.12);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  position:relative;
+  overflow:visible;
+}
+
+/* Accent glow on hover */
+.verify-btn:hover{
+  transform:translateY(-3px);
+  box-shadow: 0 18px 36px rgba(88,101,242,0.18), 0 2px 0 rgba(255,255,255,0.03);
+  filter:brightness(1.03);
+}
+
+/* Small icon inside button */
+.verify-btn .icon{
+  width:18px;
+  height:18px;
+  display:inline-block;
+  background:linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+  border-radius:4px;
+  transform:translateY(0);
+  transition:transform .25s cubic-bezier(.2,.9,.3,1);
+}
+
+/* Button ripple shimmer */
+.verify-btn::after{
+  content:"";
+  position:absolute;
+  top:-40%;
+  left:-40%;
+  width:180%;
+  height:180%;
+  background: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.06), transparent 10%),
+          radial-gradient(circle at 70% 60%, rgba(255,255,255,0.03), transparent 15%);
+  mix-blend-mode:screen;
+  opacity:0;
+  transition:opacity .25s ease;
+  pointer-events:none;
+}
+.verify-btn:hover::after{ opacity:1; }
+
+/* Loading dots (set .loading on button) */
+.verify-btn.loading{
+  pointer-events:none;
+  background: linear-gradient(180deg, #3a3fef, #2530b8);
+}
+.verify-btn.loading .label{ opacity:0; transform:translateY(-6px); }
+.verify-btn .dots{
+  display:inline-flex;
+  gap:6px;
+  align-items:center;
+  justify-content:center;
+  height:18px;
+}
+.verify-btn .dot{
+  width:6px; height:6px; border-radius:50%;
+  background:rgba(255,255,255,0.9);
+  opacity:0.9;
+  transform:translateY(0);
+  animation: dots 1s infinite;
+}
+.verify-btn .dot:nth-child(2){ animation-delay: .12s; }
+.verify-btn .dot:nth-child(3){ animation-delay: .24s; }
+
+/* Success state: checkmark pops in and confetti */
+.verify-card.success{
+  border-color: rgba(67,181,129,0.45);
+  box-shadow: 0 14px 40px rgba(67,181,129,0.08);
+}
+.verify-card .success-badge{
+  position:absolute;
+  right:18px;
+  top:18px;
+  background:linear-gradient(180deg, rgba(67,181,129,0.12), rgba(67,181,129,0.06));
+  color:var(--accent-2);
+  padding:8px 10px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:12px;
+  border:1px solid rgba(67,181,129,0.12);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transform:translateY(-10px) scale(.96);
+  opacity:0;
+  animation: badge-in .48s cubic-bezier(.2,.9,.3,1) .15s forwards;
+}
+
+/* Checkmark (hidden until success) */
+.checkmark{
+  width:40px; height:40px; border-radius:999px;
+  background:linear-gradient(180deg, rgba(67,181,129,0.14), rgba(67,181,129,0.06));
+  display:flex; align-items:center; justify-content:center;
+  color:var(--accent-2);
+  border:1px solid rgba(67,181,129,0.12);
+  transform:scale(.8) rotate(-10deg);
+  opacity:0;
+  transition: all .4s cubic-bezier(.2,.9,.3,1);
+  box-shadow:0 10px 24px rgba(67,181,129,0.06), inset 0 2px 0 rgba(255,255,255,0.02);
+}
+.verify-card.success .checkmark{
+  transform:scale(1) rotate(0);
+  opacity:1;
+  animation: pop .5s cubic-bezier(.2,.9,.3,1);
+}
+
+/* Small confetti pieces using pseudo elements */
+.verify-card .confetti{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.verify-card.success .confetti::before,
+.verify-card.success .confetti::after{
+  content:"";
+  position:absolute;
+  width:8px; height:14px;
+  background:var(--accent);
+  top:20%;
+  left:10%;
+  border-radius:2px;
+  transform:rotate(20deg);
+  animation: confetti-left .9s linear .25s forwards;
+  opacity:0;
+}
+.verify-card.success .confetti::after{
+  background:var(--accent-2);
+  left:80%;
+  top:40%;
+  width:10px; height:10px;
+  animation: confetti-right .9s linear .25s forwards;
+}
+
+/* Small helper row for status text */
+.verify-status{
+  margin-left:auto;
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* Animations */
+@keyframes float{
+  0%{ transform:translateY(0) rotate(-10deg); }
+  50%{ transform:translateY(-6px) rotate(-8deg); }
+  100%{ transform:translateY(0) rotate(-10deg); }
+}
+@keyframes dots{
+  0%{ transform:translateY(0); opacity:0.5; }
+  50%{ transform:translateY(-6px); opacity:1; }
+  100%{ transform:translateY(0); opacity:0.5; }
+}
+@keyframes pop{
+  0%{ transform:scale(.6) rotate(-8deg); opacity:0; }
+  60%{ transform:scale(1.06) rotate(4deg); opacity:1; }
+  100%{ transform:scale(1) rotate(0); opacity:1; }
+}
+@keyframes badge-in{
+  0%{ transform:translateY(-10px) scale(.92); opacity:0; }
+  60%{ transform:translateY(6px) scale(1.02); opacity:1; }
+  100%{ transform:translateY(0) scale(1); opacity:1; }
+}
+@keyframes confetti-left{
+  0%{ transform: translateY(0) rotate(0); opacity:1;}
+  100%{ transform: translateY(140px) translateX(80px) rotate(360deg); opacity:0;}
+}
+@keyframes confetti-right{
+  0%{ transform: translateY(0) rotate(0); opacity:1;}
+  100%{ transform: translateY(160px) translateX(-90px) rotate(-360deg); opacity:0;}
+}
+
+/* Responsive */
+@media (max-width:420px){
+  .verify-card{ width:100%; padding:16px; border-radius:10px; }
+  .server-icon{ width:48px; height:48px; }
+}
+
+/* Usage notes (for JS):
+  - Add .loading to .verify-btn to show dots animation.
+  - Add .success to .verify-card to reveal checkmark & confetti & badge.
+  - Add .label span inside button for text that hides when loading.
+*/
